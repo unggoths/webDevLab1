@@ -1,22 +1,21 @@
 import 'package:flutter/material.dart';
-import 'models/product.dart';
-import 'screens/product_detail_screen.dart';
+import 'screens/weather_screen.dart';
 import 'theme/app_theme.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const WeatherApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class WeatherApp extends StatelessWidget {
+  const WeatherApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Product Card',
-      theme: AppTheme.theme,
+      title: 'Weather',
       debugShowCheckedModeBanner: false,
-      home: ProductDetailScreen(product: sampleProduct),
+      theme: AppTheme.theme,
+      home: const WeatherScreen(),
     );
   }
 }
