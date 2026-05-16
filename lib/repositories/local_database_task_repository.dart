@@ -43,13 +43,15 @@ class LocalDatabaseTaskRepository implements ITaskRepository {
         id          INTEGER PRIMARY KEY AUTOINCREMENT,
         title       TEXT    NOT NULL,
         description TEXT    NOT NULL DEFAULT '',
-        isCompleted INTEGER NOT NULL DEFAULT 0,
+        isCompleted BOOLEAN NOT NULL DEFAULT FALSE,
         priority    INTEGER NOT NULL DEFAULT 1,
         createdAt   INTEGER NOT NULL,
         dueDate     INTEGER
       )
     ''');
   }
+
+  Future<Database> getDatabase() => _database;
 
   @override
   Future<List<Task>> getTasks() async {
@@ -88,5 +90,11 @@ class LocalDatabaseTaskRepository implements ITaskRepository {
   Future<void> dispose() async {
     await _db?.close();
     _db = null;
+  }
+
+  @override
+  Future<void> clearAll() async {
+    final db = await _database;
+    await db.delete('tasks');
   }
 }

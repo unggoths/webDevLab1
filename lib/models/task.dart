@@ -50,7 +50,7 @@ class Task {
       'id': id,
       'title': title,
       'description': description,
-      'isCompleted': isCompleted ? 1 : 0,
+      'isCompleted': isCompleted,
       'priority': priority.index,
       'createdAt': createdAt.millisecondsSinceEpoch,
       'dueDate': dueDate?.millisecondsSinceEpoch,
@@ -62,7 +62,7 @@ class Task {
       id: map['id'] as int?,
       title: map['title'] as String,
       description: map['description'] as String? ?? '',
-      isCompleted: (map['isCompleted'] as int) == 1,
+      isCompleted: map['isCompleted'] == 1 || map['isCompleted'] == true,
       priority: TaskPriority.values[map['priority'] as int? ?? 1],
       createdAt: DateTime.fromMillisecondsSinceEpoch(map['createdAt'] as int),
       dueDate: map['dueDate'] != null

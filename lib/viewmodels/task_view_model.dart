@@ -1,8 +1,10 @@
 import 'package:flutter/foundation.dart';
 
 import '../models/task.dart';
+import '../repositories/analytics_isolate.dart';
 import '../repositories/i_task_repository.dart';
-
+import 'dart:math';import 'dart:math';
+import '../repositories/local_database_task_repository.dart';
 /// Фільтри для відображення завдань
 enum TaskFilter { all, active, completed }
 
@@ -25,6 +27,7 @@ class TaskViewModel extends ChangeNotifier {
   String? _errorMessage;
   TaskFilter _filter = TaskFilter.all;
   String _searchQuery = '';
+  AnalyticsResult? analyticsResult;
 
   // ── Геттери (read-only для View) ──────────────────────────────────────────
 
@@ -159,5 +162,53 @@ class TaskViewModel extends ChangeNotifier {
   Future<void> dispose() async {
     await _repository.dispose();
     super.dispose();
+  }
+
+  Future<void> clearAllTasks() async {
+    try {
+      await _repository.clearAll();
+      _allTasks = [];
+      analyticsResult = null;
+      notifyListeners();
+    } catch (e) {
+      _errorMessage = 'Помилка при очищенні: $e';
+      notifyListeners();
+    }
+  }
+
+  Future<void> generateTestData() async {
+    final random = Random();
+    final db = await (_repository as LocalDatabaseTaskRepository).getDatabase();
+
+    final titles = [
+      'Написати звіт', 'Підготувати презентацію', 'Зустріч з командою',
+      'Здати лабораторну', 'Прочитати документацію', 'Виправити баг',
+      'Code review', 'Оновити залежності', 'Написати тести', 'Задеплоїти на prod',
+    ];
+
+    const batchSize = 500;
+    const total = 10000;
+
+    for (int i = 0; i < total; i += batchSize) {
+      final batch = db.batch();
+      final count = min(batchSize, total - i);
+
+      for (int j = 0; j < count; j++) {
+        batch.insert('tasks', {
+          'title': '${titles[random.nextInt(titles.length)]} #${i + j + 1}',
+          'description': '',
+          'isCompleted': random.nextBool() ? 1 : 0,
+          'priority': random.nextInt(3),
+          'createdAt': DateTime.now()
+              .subtract(Duration(days: random.nextInt(365)))
+              .millisecondsSinceEpoch,
+          'dueDate': null,
+        });
+      }
+
+      await batch.commit(noResult: true);
+    }
+
+    await loadTasks();
   }
 }

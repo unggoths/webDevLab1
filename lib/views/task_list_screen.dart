@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
+  import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
+import 'analytics_screen.dart';
 import '../models/task.dart';
 import '../viewmodels/task_view_model.dart';
 import '../widgets/task_card.dart';
@@ -119,6 +119,14 @@ class _TaskListScreenState extends State<TaskListScreen> {
               vm.setSearchQuery('');
             }
           },
+        ),
+        IconButton(
+          icon: const Icon(Icons.analytics_outlined),
+          tooltip: 'Аналітика',
+          onPressed: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const AnalyticsScreen()),
+          ),
         ),
         IconButton(
           icon: const Icon(Icons.refresh),

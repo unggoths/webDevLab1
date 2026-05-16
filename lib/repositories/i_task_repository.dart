@@ -19,4 +19,6 @@ abstract class ITaskRepository {
 
   /// Звільняє ресурси (закриває БД тощо)
   Future<void> dispose();
+
+  Future<void> clearAll();
 }
