@@ -33,6 +33,8 @@ class AnalyticsResult {
   final int highPriority;
   final int exportedBytes;
   final Duration elapsed;
+  final String exportPath;
+  final List<String> previewRows;
 
   AnalyticsResult({
     required this.total,
@@ -41,6 +43,9 @@ class AnalyticsResult {
     required this.highPriority,
     required this.exportedBytes,
     required this.elapsed,
+    required this.exportPath,
+    required this.previewRows
+
   });
 }
 
@@ -50,7 +55,8 @@ Future<void> analyticsIsolateEntry(IsolateStartMessage msg) async {
   BackgroundIsolateBinaryMessenger.ensureInitialized(msg.token);
 
   final sendPort = msg.sendPort;
-  final stopwatch = Stopwatch()..start();
+  final stopwatch = Stopwatch()
+    ..start();
 
   // Крок 2 — відкриваємо БД за переданим шляхом
   final db = await openDatabase(
@@ -71,26 +77,29 @@ Future<void> analyticsIsolateEntry(IsolateStartMessage msg) async {
   // Крок 4 — обробляємо пагінацією щоб не завантажувати все в RAM
   const pageSize = 500;
   int offset = 0;
-
+  final buffer = StringBuffer('[');
+  bool first = true;
+  final previewRows = <String>[];
   while (offset < total) {
-    final rows = await db.query(
-      'tasks',
-      limit: pageSize,
-      offset: offset,
-    );
+    final rows = await db.query('tasks', limit: pageSize, offset: offset);
 
     for (final row in rows) {
-      // Серіалізація — імітуємо CPU-bound роботу
+      final description = (row['description'] as String? ?? '').replaceAll(
+          '"', '\\"');
+      final title = (row['title'] as String? ?? '').replaceAll('"', '\\"');
       final json =
-          '{"id":${row['id']},"title":"${(row['title'] as String).replaceAll('"', '\\"')}","isCompleted":${row['isCompleted']},"priority":${row['priority']},"createdAt":${row['createdAt']}}';
-      exportedBytes += json.length;
+          '{"id":${row['id']},"title":"$title","description":"$description","isCompleted":${row['isCompleted']},"priority":${row['priority']},"createdAt":${row['createdAt']},"dueDate":${row['dueDate']}}';
+      if (previewRows.length < 2) previewRows.add(json);
 
+      if (!first) buffer.write(',');
+      buffer.write(json);
+      first = false;
+
+      exportedBytes += json.length;
       if (row['isCompleted'] == 1 || row['isCompleted'] == true) completed++;
       if ((row['priority'] as int? ?? 1) == 2) highPriority++;
-
       processed++;
 
-      // Кожні 200 записів — надсилаємо прогрес у головний потік
       if (processed % 200 == 0) {
         sendPort.send(ProgressMessage(processed, total));
       }
@@ -99,15 +108,15 @@ Future<void> analyticsIsolateEntry(IsolateStartMessage msg) async {
     offset += pageSize;
   }
 
-  //final directory = await getApplicationDocumentsDirectory();
-  //final file = File('${directory.path}/tasks_export.json');
-  //await file.writeAsString('[$allJsonRows]');
-  //sendPort.send('export_path:${file.path}');
+  buffer.write(']');
+
+  final directory = await getApplicationDocumentsDirectory();
+  final file = File('${directory.path}/tasks_export.json');
+  await file.writeAsString(buffer.toString());
 
   await db.close();
   stopwatch.stop();
 
-  // Надсилаємо фінальний результат
   sendPort.send(AnalyticsResult(
     total: total,
     completed: completed,
@@ -115,5 +124,7 @@ Future<void> analyticsIsolateEntry(IsolateStartMessage msg) async {
     highPriority: highPriority,
     exportedBytes: exportedBytes,
     elapsed: stopwatch.elapsed,
+    exportPath: file.path,
+    previewRows: previewRows,
   ));
 }

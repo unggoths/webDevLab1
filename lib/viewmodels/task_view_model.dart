@@ -185,6 +185,11 @@ class TaskViewModel extends ChangeNotifier {
       'Здати лабораторну', 'Прочитати документацію', 'Виправити баг',
       'Code review', 'Оновити залежності', 'Написати тести', 'Задеплоїти на prod',
     ];
+    
+    final descriptions = [
+      'Зробити 1','Зробити 2','Зробити 3','Зробити 4','Зробити 1',
+      'Зробити 1','Зробити 1','Зробити 1','Зробити 1','Зробити 1',
+    ];
 
     const batchSize = 500;
     const total = 10000;
@@ -196,7 +201,7 @@ class TaskViewModel extends ChangeNotifier {
       for (int j = 0; j < count; j++) {
         batch.insert('tasks', {
           'title': '${titles[random.nextInt(titles.length)]} #${i + j + 1}',
-          'description': '',
+          'description': '${descriptions[random.nextInt(descriptions.length)]} #${i + j + 1}',
           'isCompleted': random.nextBool() ? 1 : 0,
           'priority': random.nextInt(3),
           'createdAt': DateTime.now()

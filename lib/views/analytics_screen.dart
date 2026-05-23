@@ -1,11 +1,14 @@
 import 'dart:isolate';
 import 'dart:math';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart' as p;
 import 'package:sqflite/sqflite.dart';
 import 'package:provider/provider.dart';
 import '../viewmodels/task_view_model.dart';
+import 'package:share_plus/share_plus.dart';
+
 
 import '../repositories/analytics_isolate.dart';
 import '../repositories/local_database_task_repository.dart';
@@ -264,6 +267,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
             if (_result != null) ...[
               const SizedBox(height: 16),
               _ResultSection(result: _result!, cs: cs),
+
             ],
           ],
         ),
@@ -420,8 +424,18 @@ class _ResultSection extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
-            _statGrid(context),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: cs.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                result.previewRows.join(',\n'),
+                style: const TextStyle(fontSize: 11, fontFamily: 'monospace'),
+              ),
+            ),
           ],
         ),
       ),

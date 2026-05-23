@@ -10,11 +10,13 @@ dependencies:
   flutter:
     sdk: flutter
   # State management (ChangeNotifier)
+  open_filex: ^4.3.4
   provider: ^6.1.5+1
   # SQLite (мобільний / десктоп)
   sqflite: ^2.4.2+1
   # SQLite (веб)
   sqflite_common_ffi_web: ^1.1.1
+  share_plus: ^10.0.0
   # Утиліти
   path: ^1.9.1
   path_provider: ^2.1.2
